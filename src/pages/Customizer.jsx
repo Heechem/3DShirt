@@ -23,8 +23,8 @@ const Customizer = () => {
   const [generatingImg, setGeneratingImg] = useState(false);
   const [activeEditorTab, setActiveEditorTab] = useState("");
   const [activeFilterTab, setActiveFilterTab] = useState({
-    logoshirt: true,
-    stylShirt: false,
+    logoShirt: true,
+    stylshShirt: false,
   });
 
   // show tab content depending on the active tab
@@ -46,6 +46,46 @@ const Customizer = () => {
         );
       default:
         return null;
+    }
+  };
+
+  // submission function
+
+  const handleSubmit = async (type) => {
+    if (!prompt) return alert("Please enter a prompt");
+
+    try {
+      setGeneratingImg(true);
+
+      const response = await fetch("http://localhost:8080/api/v1/dalle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      handleDecals(type, `data:image/png;base64,${data.photo}`);
+    } catch (error) {
+      alert(error);
+    } finally {
+      setGeneratingImg(false);
+      setActiveEditorTab("");
+    }
+  };
+
+  const handleDecals = (type, res) => {
+    const decalType = DecalTypes[type];
+
+    state[decalType.stateProperty] = res;
+
+    if (!activeFilterTab[decalType.filterTab]) {
+      handlActiveFilterTab(decalType.filterTab);
     }
   };
 
@@ -71,16 +111,6 @@ const Customizer = () => {
         [tabName]: !prevState[tabName],
       };
     });
-  };
-
-  const handleDecals = (type, res) => {
-    const decalType = DecalTypes[type];
-
-    state[decalType.stateProperty] = res;
-
-    if (!activeFilterTab[decalType.FilterTabs]) {
-      handlActiveFilterTab(decalType.FilterTab);
-    }
   };
 
   const readFile = (type) => {
